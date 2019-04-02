@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="per.niejun.dao.UserDao">
+  <resultMap id="BaseResultMap" type="per.niejun.entity.User">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="uname" jdbcType="VARCHAR" property="uname" />
+    <result column="password" jdbcType="VARCHAR" property="password" />
+  </resultMap>
+
+
+  <sql id="Base_Column_List">
+    id, uname, password
+  </sql>
+
+
+  <select id="checkUser" parameterType="per.niejun.entity.User" resultMap="BaseResultMap">
+    SELECT * from user where uname=#{uname} and password=#{password}
+  </select>
+  <select id="isExistUser" parameterType="java.lang.String" resultMap="BaseResultMap">
+    SELECT * from user where uname=#{uname}
+  </select>
+  <select id="findAll" resultMap="BaseResultMap">
+    SELECT * from user
+  </select>
+
+
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from user
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from user
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="per.niejun.entity.User">
+    insert into user (id, uname, password
+      )
+    values (#{id,jdbcType=VARCHAR}, #{uname,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="per.niejun.entity.User">
+    insert into user
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="uname != null">
+        uname,
+      </if>
+      <if test="password != null">
+        password,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="uname != null">
+        #{uname,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null">
+        #{password,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="per.niejun.entity.User">
+    update user
+    <set>
+      <if test="uname != null">
+        uname = #{uname,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null">
+        password = #{password,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="per.niejun.entity.User">
+    update user
+    set uname = #{uname,jdbcType=VARCHAR},
+      password = #{password,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+
+</mapper>
