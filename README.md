@@ -26,13 +26,7 @@ virtualbox centos  sprintboot项目已打包成jar包
 #### MySql部署
 
 ```shell
-# 项目中的配置文件application.yml  使用docker部署时此处为docker中mysql容器名称  另注意mysql密码需与容器里mysql的密码一致
-url: jdbc:mysql://mysql-docker:3306/miniprogram?useUnicode=true&characterEncoding=utf-8&useSSL=true
-后续运行主应用容器时加上
-  --link mysql-docker:mysql-docker 
-
-
-# linux服务器 进行一下步骤
+# linux服务器 进行以下步骤
 sudo docker volume create mysql_data  #创建数据卷用来保存mysql的数据，可多个容器共享一个数据卷，当容器被删除时，数据卷不会被删除，mysql的数据依然存在
 sudo docker run --name mysql-docker -v mysql_data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 -p 3306:3306 -d mysql:5.7   # 执行此命令时必须先执行上一条命令
 
@@ -49,15 +43,36 @@ sudo docker run --name mysql-docker -e MYSQL_ROOT_PASSWORD=123456 -p 3306:3306 -
 
 
 # 一般来说下面的命令用不上
-sudo docker exec -it mysql-docker /bin/bash   #进入MySQL容器,登陆mysql
-mysql -u root -p  # 登陆容器里的mysql
+
+sudo docker exec -it mysql-docker /bin/bash   #进入MySQL容器 /bin/bash
+mysql -u root -p  # 进入容器里的mysql
 
 # 设置外部网络访问mysql权限  外部访问权限不够才执行
 ALTER user 'root'@'%' IDENTIFIED WITH mysql_native_password BY '123456';  --sql语句
 FLUSH PRIVILEGES;    --sql语句
 ```
 
+##### tips：
 
+> ##### 如果在项目中使用mysql数据库，且在docker中进行了mysql数据库的配置启动，需要修改项目的数据库连接配置。
+>
+> 如何修改？
+> 使用docker inspect CONTAINER_ID 查询mysql容器Ip
+> 命令：docker inspect mysql
+>
+> 将项目中的数据库连接的localhost更改为上图的IPAddress(如：172.17.0.2)
+> 原因分析： 在Docker上为容器分配的ip一般不会是127.0.0.1，所以使用localhost无法映射到容器的ip地址。
+>
+> ##### 项目中的配置文件application.yml  使用docker部署时此处为docker中mysql容器名称  另注意mysql密码需与容器里mysql的密码一致
+> url: jdbc:mysql://mysql-docker:3306/miniprogram?useUnicode=true&characterEncoding=utf-8&useSSL=true
+> 后续运行主应用容器时加上
+> --link mysql-docker:mysql-docker 
+>
+> ##### 总结：项目中数据库连接 由 localhost:3306/data
+>
+> 改为  172.17.0.2(mysql容器的ip地址):3306/data 
+>
+> 或      mysql-docker(mysql容器的别名):3306/data
 
 #### 将jar应用打包成镜像
 
@@ -115,14 +130,14 @@ docker image rm -f imageid //根据镜像id强制删除镜像
 #  -p 8089:8089 端口映射，注意是小写 p 
 # 前一个 8089 是对外浏览器上访问的端口，后一个 8089 是容器内工程本身的端口，两者可不一样
  
-sudo docker run -d -p 8089:8089 --name main miniserver  //后台运行 miniserver 镜像，并将运行的容器命名为 main
+sudo docker run -d -p 8080:8888 --name main miniserver:0.0.1  //后台运行 miniserver 镜像，并将运行的容器命名为 main
 
 # --rm 运行完删除容器
 # --link tz_mysql 第一个参数为mysql的docker容器名称，mysql-docker 第二个参数为别名，此处和yml文件中连接mysql的地址保持一致 
 # tz-docker-demo:0.0.1 这个为我们刚刚build的镜像名称0.0.1是版本号，不写则是latest
 sudo docker run --rm -d -p 8080:8888 --name main --link mysql-docker:mysql-docker miniserver:0.0.1
 
-
+sudo docker run -it --net=host -d --name main2 -p 8080:8888 miniserver:0.0.1
 # ps  若使用virtual box配置的centos网络连接为 NAT模式，则需在端口转发那里加上 8080 否则浏览器访问不到
 ```
 
@@ -158,8 +173,6 @@ docker logs -f 容器ID //-f：不间断持续输出
 ```
 
 
-
-##### 
 
 
 
